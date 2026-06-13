@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Smooth scrolling for the whole page */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom gradient text utility */
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-400 to-purple-400;
+}
+
+/* Glow card effect */
+.glow-card {
+  @apply bg-gray-900/60 border border-gray-800 rounded-2xl backdrop-blur-sm;
+}
+
+.glow-card-active {
+  @apply glow-card border-brand-500/50 shadow-lg shadow-brand-500/10 animate-glow;
+}

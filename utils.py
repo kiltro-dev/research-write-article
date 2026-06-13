@@ -39,3 +39,4 @@ def pretty_print_result(result):
       else:
           parsed_result.append(line)
   return "\n".join(parsed_result)
+
