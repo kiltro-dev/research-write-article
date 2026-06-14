@@ -42,7 +42,7 @@ Antes de los deploy hooks, necesitas crear el web service en Render y el proyect
 
 | Campo | Qué poner |
 |-------|----------|
-| **Name** | `article-agent-api` (será `article-agent-api.onrender.com`) |
+| **Name** | `research-write-article` (será `research-write-article.onrender.com`) |
 | **Region** | El más cercano a ti (ej: Ohio) |
 | **Branch** | `main` |
 | **Runtime** | `Python 3` |
@@ -60,7 +60,7 @@ Antes de los deploy hooks, necesitas crear el web service en Render y el proyect
 
 6. Selecciona **Free** como plan
 7. Haz clic en **Create Web Service** → Render construye y despliega
-8. Verifica: abre `https://article-agent-api.onrender.com/docs` (deberías ver Swagger)
+8. Verifica: abre `https://research-write-article.onrender.com/docs` (deberías ver Swagger)
 
 ### Crear el Frontend en Vercel
 
@@ -76,7 +76,7 @@ Antes de los deploy hooks, necesitas crear el web service en Render y el proyect
 | **Build Command** | `npm run build` |
 | **Output Directory** | `dist` |
 
-5. Agrega **Environment Variable**: `VITE_API_URL` = `https://article-agent-api.onrender.com`
+5. Agrega **Environment Variable**: `VITE_API_URL` = `https://research-write-article.onrender.com`
 6. Haz clic en **Deploy**
 7. Verifica: abre la URL que te da (algo como `https://research-write-article.vercel.app`)
 
@@ -85,7 +85,7 @@ Antes de los deploy hooks, necesitas crear el web service en Render y el proyect
 ## ⚙️ Paso 1: Configurar los deploy hooks
 
 ### Render Deploy Hook
-1. En [dashboard.render.com](https://dashboard.render.com), haz clic en el servicio `article-agent-api`
+1. En [dashboard.render.com](https://dashboard.render.com), haz clic en el servicio `research-write-article`
 2. Ve a la pestaña **Settings** (arriba)
 3. Desplázate hasta la sección **"Deploy Hook"** — ahí está la URL
 4. Cópiala (formato: `https://api.render.com/deploy/srv-...?key=...`)
@@ -109,7 +109,7 @@ Antes de los deploy hooks, necesitas crear el web service en Render y el proyect
 |--------|-------|
 | `RENDER_DEPLOY_HOOK_URL` | URL copiada de Render |
 | `VERCEL_DEPLOY_HOOK_URL` | URL copiada de Vercel |
-| `VITE_API_URL` | `https://article-agent-api.onrender.com` |
+| `VITE_API_URL` | `https://research-write-article.onrender.com` |
 
 ---
 

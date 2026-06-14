@@ -2,7 +2,7 @@
 # https://render.com/docs/blueprint-spec
 services:
   - type: web
-    name: article-agent-api
+    name: research-write-article
     env: python
     region: oregon
     plan: free

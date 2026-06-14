@@ -129,21 +129,6 @@ async def root():
     }
 
 
-# SPA fallback — serve index.html for any unmatched route when static exists
-if HAS_STATIC:
-    @app.get("/{full_path:path}")
-    async def spa_fallback(full_path: str):
-        """Catch-all for SPA client-side routing."""
-        # Skip API routes
-        if full_path.startswith("api/") or full_path in ("docs", "redoc", "openapi.json"):
-            from fastapi.responses import JSONResponse
-            return JSONResponse({"detail": "Not Found"}, status_code=404)
-        file_path = STATIC_DIR / full_path
-        if file_path.is_file():
-            return FileResponse(file_path)
-        return HTMLResponse((STATIC_DIR / "index.html").read_text())
-
-
 @app.get("/api/health", response_model=HealthResponse)
 async def health():
     """Health check — also reports which providers have keys configured."""
@@ -209,6 +194,19 @@ async def generate(req: GenerateRequest, request: Request):
             "X-Accel-Buffering": "no",  # Disable nginx buffering for SSE
         },
     )
+
+
+# SPA fallback — serve index.html for any unmatched GET route when static exists
+# MUST be the last route registered so API routes match first
+if HAS_STATIC:
+    @app.get("/{full_path:path}")
+    async def spa_fallback(full_path: str):
+        """Catch-all for SPA client-side routing."""
+        # API routes already matched above — this only fires for unknown paths
+        file_path = STATIC_DIR / full_path
+        if file_path.is_file():
+            return FileResponse(file_path)
+        return HTMLResponse((STATIC_DIR / "index.html").read_text())
 
 
 # ---------------------------------------------------------------------------

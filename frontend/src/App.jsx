@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useBrowserLanguage, usePreferences } from './hooks/useBrowserLanguage'
-import { t, tf } from './i18n'
+import { t, tf, SUPPORTED_UI_LANGUAGES } from './i18n'
 import Hero from './components/Hero'
 import TopicInput from './components/TopicInput'
 import AgentProgress from './components/AgentProgress'
@@ -140,8 +140,8 @@ export default function App() {
             onChange={(e) => changeLanguage(e.target.value)}
             className="appearance-none bg-gray-900/70 border border-gray-700/50 rounded-full pl-3.5 pr-8 py-1.5 text-xs text-gray-300 hover:border-gray-600 focus:outline-none focus:border-brand-500 cursor-pointer backdrop-blur-sm transition-colors"
           >
-            {['es','en','pt','fr','it','de'].map(code => (
-              <option key={code} value={code}>{code.toUpperCase()}</option>
+            {SUPPORTED_UI_LANGUAGES.map(lang => (
+              <option key={lang.code} value={lang.code}>{lang.flag} {lang.code.toUpperCase()}</option>
             ))}
           </select>
           <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">

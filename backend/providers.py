@@ -62,6 +62,7 @@ def create_llm(provider: str, model: str, api_key: str) -> LLM:
         model=model,
         api_key=api_key,
         temperature=0.7,
+        drop_params=True,
     )
 
 

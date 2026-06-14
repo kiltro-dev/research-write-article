@@ -128,7 +128,7 @@ Two separate services, each doing what they're best at.
 
 | Field | Value |
 |-------|-------|
-| **Name** | `article-agent-api` (becomes `article-agent-api.onrender.com`) |
+| **Name** | `research-write-article` (becomes `research-write-article.onrender.com`) |
 | **Region** | `Ohio (US East)` or closest to you |
 | **Branch** | `main` |
 | **Runtime** | `Python 3` |
@@ -143,7 +143,7 @@ Two separate services, each doing what they're best at.
 | `GROQ_API_KEY` | `gsk_your_key_here` |
 | `GEMINI_API_KEY` | *(if you have one)* |
 | `PROVIDER_PRIORITY` | `groq,gemini,openrouter,huggingface` |
-6. Click **Create Web Service** → Render builds & deploys. Your API is live at `https://article-agent-api.onrender.com`. Verify: open `/docs` for the Swagger UI.
+6. Click **Create Web Service** → Render builds & deploys. Your API is live at `https://research-write-article.onrender.com`. Verify: open `/docs` for the Swagger UI.
 
 #### Frontend → Vercel
 

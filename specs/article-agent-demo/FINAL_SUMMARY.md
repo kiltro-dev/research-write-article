@@ -173,7 +173,7 @@ git push origin main
 
 | Campo | Qué poner |
 |-------|----------|
-| **Name** | `article-agent-api` (o el nombre que quieras) |
+| **Name** | `research-write-article` (o el nombre que quieras) |
 | **Region** | `Oregon (US West)` — es la más cercana si estás en América |
 | **Branch** | `main` |
 | **Root Directory** | Déjalo vacío |
@@ -198,10 +198,10 @@ git push origin main
 
 8. 🎉 **Render empezará a construir y desplegar tu app.** Verás logs en vivo. Cuando termine, tu backend estará vivo en:
    ```
-   https://article-agent-api.onrender.com
+   https://research-write-article.onrender.com
    ```
 
-9. Verifica que funciona: entra a `https://article-agent-api.onrender.com/docs` — deberías ver la página de Swagger con tus endpoints.
+9. Verifica que funciona: entra a `https://research-write-article.onrender.com/docs` — deberías ver la página de Swagger con tus endpoints.
 
 > ⚠️ **Ojo con el sleep mode**: En capa gratuita, si nadie usa tu app por 15 minutos, Render la "duerme". La primera petición después de dormir tarda ~30-60 segundos en responder. ¡Es normal! Las siguientes peticiones son rápidas.
 
@@ -236,7 +236,7 @@ Antes de hacer clic en Deploy, en esa misma pantalla busca **"Environment Variab
 
 | Key | Value |
 |-----|-------|
-| `VITE_API_URL` | `https://article-agent-api.onrender.com` |
+| `VITE_API_URL` | `https://research-write-article.onrender.com` |
 
 (⚠️ Usa la URL exacta que te dio Render en el paso A3.8)
 

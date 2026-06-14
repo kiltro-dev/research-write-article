@@ -60,7 +60,7 @@ function LanguageSelector({ label, value, onChange, uiLang }) {
         >
           {CONTENT_LANGUAGES.map((lang) => (
             <option key={lang.code} value={lang.code}>
-              {lang.name}
+              {lang.flag} {lang.name}
             </option>
           ))}
         </select>
