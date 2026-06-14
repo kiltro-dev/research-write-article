@@ -4,17 +4,23 @@
 Permitir que la demo de artículos se ejecute en varios idiomas y que el usuario pueda ajustar ciertas características del resultado desde el frontend, sin romper el flujo actual del sistema de agentes.
 
 ## Requisitos funcionales
-1. El usuario debe poder elegir el idioma del artículo entre español y al menos 5 idiomas adicionales.
-2. El sistema debe adaptar el prompt de los agentes al idioma seleccionado.
-3. El resultado final debe escribirse en ese idioma.
-4. El usuario debe poder elegir al menos 3 opciones de personalización desde el frontend, por ejemplo:
+1. La app debe soportar dos conceptos de idioma:
+   - idioma de la interfaz (texto del front)
+   - idioma del contenido generado por los agentes
+2. Estas dos configuraciones deben poder ser independientes entre sí.
+3. El usuario debe poder elegir el idioma del artículo entre español y al menos 5 idiomas adicionales.
+4. El sistema debe adaptar el prompt de los agentes al idioma seleccionado para el contenido.
+5. El resultado final debe escribirse en ese idioma.
+6. El usuario debe poder elegir al menos 3 opciones de personalización desde el frontend, por ejemplo:
    - tono (formal, casual, editorial)
    - longitud (corto, medio, largo)
    - enfoque (informativo, persuasivo, analítico)
 5. La configuración elegida debe influir en el prompt de los agentes.
-6. La interfaz debe mostrar de forma clara qué idioma y qué estilo se está usando.
-7. El backend debe aceptar estas opciones en la solicitud de generación.
-8. Si una opción no es válida, el sistema debe responder con un error claro.
+7. La interfaz debe mostrar de forma clara qué idioma y qué estilo se está usando.
+8. El backend debe aceptar estas opciones en la solicitud de generación.
+9. Si una opción no es válida, el sistema debe responder con un error claro.
+10. Si el usuario no selecciona un idioma explícito, el sistema debe usar por defecto el idioma detectado desde el navegador del usuario.
+11. Si el usuario no selecciona idioma de interfaz, la UI debe usar el idioma del navegador como valor inicial.
 
 ## Requisitos no funcionales
 1. El sistema debe seguir funcionando con el fallback actual de proveedores.

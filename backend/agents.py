@@ -1,24 +1,68 @@
 """
 CrewAI agent pipeline: Planner → Writer → Editor.
-Extracted from the original Jupyter notebook and adapted for production.
-Supports async streaming of progress updates via Server-Sent Events.
+Extracted from the original Jupyter notebook.
+Customization layer (language, tone, length, perspective) added on top.
 """
 import asyncio
+import json
 import logging
 from typing import AsyncGenerator
 
-from crewai import Agent, Task, Crew
-from crewai import LLM
+from crewai import Agent, Task, Crew, LLM
+
+from backend.prompt_adapter import (
+    build_customization_instructions,
+    build_editor_customization_instructions,
+    validate_options,
+    get_language_name,
+)
 
 logger = logging.getLogger(__name__)
 
+
 # ---------------------------------------------------------------------------
-# Agent definitions (from the original notebook, translated to crewAI v0.108+)
+# Progress event (for SSE streaming to frontend)
 # ---------------------------------------------------------------------------
 
-def _create_agents(llm: LLM) -> tuple[Agent, Agent, Agent]:
-    """Create the three agents with a shared LLM."""
+class ProgressEvent:
+    def __init__(self, step: str, status: str, message: str):
+        self.step = step
+        self.status = status
+        self.message = message
 
+    def to_sse(self) -> str:
+        return f"data: {json.dumps(self.__dict__)}\n\n"
+
+
+# ---------------------------------------------------------------------------
+# Pipeline
+# ---------------------------------------------------------------------------
+
+async def run_article_pipeline(
+    topic: str,
+    provider_name: str,
+    llm: LLM,
+    content_language: str = "es",
+    tone: str = "casual",
+    length: str = "medium",
+    perspective: str = "informative",
+) -> AsyncGenerator[ProgressEvent, None]:
+    """Run Planner → Writer → Editor in a single Crew, yielding progress events."""
+
+    opts = validate_options(content_language, tone, length, perspective)
+    content_language = opts["content_language"]
+    tone = opts["tone"]
+    length = opts["length"]
+    perspective = opts["perspective"]
+    lang_name = get_language_name(content_language)
+
+    logger.info("Pipeline: topic=%r provider=%s lang=%s tone=%s", topic, provider_name, content_language, tone)
+
+    # Build customization blocks (appended to task descriptions)
+    custom = build_customization_instructions(content_language, tone, length, perspective)
+    editor_custom = build_editor_customization_instructions(content_language, tone)
+
+    # --- Agents (same structure as original notebook) ---
     planner = Agent(
         role="Content Planner",
         goal="Plan engaging and factually accurate content on {topic}",
@@ -64,14 +108,7 @@ def _create_agents(llm: LLM) -> tuple[Agent, Agent, Agent]:
         llm=llm,
     )
 
-    return planner, writer, editor
-
-
-def _create_tasks(
-    planner: Agent, writer: Agent, editor: Agent, topic: str
-) -> tuple[Task, Task, Task]:
-    """Create the three sequential tasks for the pipeline."""
-
+    # --- Tasks (original structure + customization block appended) ---
     plan_task = Task(
         description=(
             "1. Prioritize the latest trends, key players, "
@@ -80,7 +117,8 @@ def _create_tasks(
             "their interests and pain points.\n"
             "3. Develop a detailed content outline including "
             "an introduction, key points, and a call to action.\n"
-            "4. Include SEO keywords and relevant data or sources."
+            "4. Include SEO keywords and relevant data or sources.\n"
+            + custom
         ),
         expected_output=(
             "A comprehensive content plan document "
@@ -102,6 +140,7 @@ def _create_tasks(
             "and a summarizing conclusion.\n"
             "5. Proofread for grammatical errors and "
             "alignment with the brand's voice.\n"
+            + custom
         ),
         expected_output=(
             "A well-written blog post in markdown format, ready for publication, "
@@ -113,7 +152,8 @@ def _create_tasks(
     edit_task = Task(
         description=(
             "Proofread the given blog post for grammatical errors and "
-            "alignment with the brand's voice."
+            "alignment with the brand's voice.\n"
+            + editor_custom
         ),
         expected_output=(
             "A well-written blog post in markdown format, "
@@ -123,158 +163,33 @@ def _create_tasks(
         agent=editor,
     )
 
-    return plan_task, write_task, edit_task
-
-
-# ---------------------------------------------------------------------------
-# Progress event model (yielded to the SSE stream)
-# ---------------------------------------------------------------------------
-
-class ProgressEvent:
-    """Lightweight progress update sent to the frontend via SSE."""
-
-    def __init__(self, step: str, status: str, message: str):
-        self.step = step       # "planning", "writing", "editing", "done", "error"
-        self.status = status    # "running", "completed", "error"
-        self.message = message  # Human-readable description
-
-    def to_sse(self) -> str:
-        """Format as SSE data line."""
-        import json
-        return f"data: {json.dumps(self.__dict__)}\n\n"
-
-
-# ---------------------------------------------------------------------------
-# Pipeline runner with progress streaming
-# ---------------------------------------------------------------------------
-
-async def run_article_pipeline(
-    topic: str, provider_name: str, llm: LLM
-) -> AsyncGenerator[ProgressEvent, None]:
-    """Run the Planner → Writer → Editor pipeline, yielding progress events.
-
-    Args:
-        topic: The article topic/question from the user.
-        provider_name: Name of the LLM provider being used (for logging).
-        llm: A crewAI LLM instance.
-
-    Yields:
-        ProgressEvent objects at each stage of the pipeline.
-    """
-    logger.info("Starting pipeline for topic=%r with provider=%s", topic, provider_name)
-
-    # --- Create agents and tasks ---
-    planner, writer, editor = _create_agents(llm)
-    plan_task, write_task, edit_task = _create_tasks(planner, writer, editor, topic)
-
-    # --- Stage 1: Planning ---
-    yield ProgressEvent(
-        step="planning",
-        status="running",
-        message="Planner is researching the topic and building an outline...",
-    )
-
+    # --- Run all in one Crew (like the notebook) ---
+    # crewAI handles context flow between tasks internally.
     try:
-        # Run plan in a thread to avoid blocking the event loop
-        plan_crew = Crew(
-            agents=[planner],
-            tasks=[plan_task],
+        crew = Crew(
+            agents=[planner, writer, editor],
+            tasks=[plan_task, write_task, edit_task],
             verbose=True,
         )
-        plan_result = await asyncio.to_thread(
-            plan_crew.kickoff, inputs={"topic": topic}
-        )
-        logger.info("Plan completed: %d chars", len(str(plan_result)))
-
-        yield ProgressEvent(
-            step="planning",
-            status="completed",
-            message="Outline and research plan ready.",
-        )
+        result = await asyncio.to_thread(crew.kickoff, inputs={"topic": topic})
+        final_article = str(result)
+        logger.info("Pipeline done: %d chars", len(final_article))
 
     except Exception as exc:
-        logger.exception("Planning stage failed")
-        yield ProgressEvent(
-            step="planning",
-            status="error",
-            message=f"Planning failed: {exc}",
-        )
+        logger.exception("Pipeline failed")
+        yield ProgressEvent("error", "error", f"Generation failed: {exc}")
         return
 
-    # --- Stage 2: Writing ---
     yield ProgressEvent(
-        step="writing",
-        status="running",
-        message="Writer is crafting the article from the plan...",
-    )
-
-    try:
-        write_crew = Crew(
-            agents=[writer],
-            tasks=[write_task],
-            verbose=True,
-        )
-        draft = await asyncio.to_thread(
-            write_crew.kickoff, inputs={"topic": topic}
-        )
-        logger.info("Draft completed: %d chars", len(str(draft)))
-
-        yield ProgressEvent(
-            step="writing",
-            status="completed",
-            message="First draft of the article is ready.",
-        )
-
-    except Exception as exc:
-        logger.exception("Writing stage failed")
-        yield ProgressEvent(
-            step="writing",
-            status="error",
-            message=f"Writing failed: {exc}",
-        )
-        return
-
-    # --- Stage 3: Editing ---
-    yield ProgressEvent(
-        step="editing",
-        status="running",
-        message="Editor is polishing the article for quality and clarity...",
-    )
-
-    try:
-        edit_crew = Crew(
-            agents=[editor],
-            tasks=[edit_task],
-            verbose=True,
-        )
-        final_article = await asyncio.to_thread(
-            edit_crew.kickoff, inputs={"topic": topic}
-        )
-        logger.info("Final article: %d chars", len(str(final_article)))
-
-        yield ProgressEvent(
-            step="editing",
-            status="completed",
-            message="Article has been reviewed and polished.",
-        )
-
-    except Exception as exc:
-        logger.exception("Editing stage failed")
-        yield ProgressEvent(
-            step="editing",
-            status="error",
-            message=f"Editing failed: {exc}",
-        )
-        return
-
-    # --- Done: send final article as a special event ---
-    import json
-    yield ProgressEvent(
-        step="done",
-        status="completed",
+        "done", "completed",
         message=json.dumps({
-            "article": str(final_article),
+            "article": final_article,
             "provider": provider_name,
             "topic": topic,
+            "content_language": content_language,
+            "language_name": lang_name,
+            "tone": tone,
+            "length": length,
+            "perspective": perspective,
         }),
     )

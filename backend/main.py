@@ -78,6 +78,32 @@ class GenerateRequest(BaseModel):
         examples=["Artificial Intelligence in Healthcare"],
         description="The topic or question to generate an article about",
     )
+    content_language: str = Field(
+        default="es",
+        min_length=2,
+        max_length=5,
+        pattern=r"^(es|en|pt|fr|it|de)$",
+        examples=["es", "en"],
+        description="Language for the generated article (es, en, pt, fr, it, de)",
+    )
+    tone: str = Field(
+        default="casual",
+        pattern=r"^(formal|casual|editorial|technical|inspirational)$",
+        examples=["casual", "formal"],
+        description="Writing tone",
+    )
+    length: str = Field(
+        default="medium",
+        pattern=r"^(short|medium|long)$",
+        examples=["medium", "short"],
+        description="Article length",
+    )
+    perspective: str = Field(
+        default="informative",
+        pattern=r"^(informative|persuasive|analytical)$",
+        examples=["informative", "persuasive"],
+        description="Writing perspective",
+    )
 
 
 class HealthResponse(BaseModel):
@@ -159,7 +185,15 @@ async def generate(req: GenerateRequest, request: Request):
 
     async def event_stream():
         """Async generator yielding SSE-formatted progress events."""
-        async for event in run_article_pipeline(req.topic, provider_name, llm):
+        async for event in run_article_pipeline(
+            req.topic,
+            provider_name,
+            llm,
+            content_language=req.content_language,
+            tone=req.tone,
+            length=req.length,
+            perspective=req.perspective,
+        ):
             # Allow client disconnect to cancel the pipeline
             if await request.is_disconnected():
                 logger.info("Client disconnected — stopping pipeline")

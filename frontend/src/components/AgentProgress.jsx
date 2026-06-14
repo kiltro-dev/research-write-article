@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { t, tf } from '../i18n'
 
 const STEP_ICONS = {
   planning: (
@@ -46,7 +47,7 @@ const STATUS_DOTS = {
   ),
 }
 
-export default function AgentProgress({ steps, topic }) {
+export default function AgentProgress({ steps, topic, uiLang }) {
   return (
     <div className="glow-card p-6 sm:p-8">
       <div className="flex items-center gap-3 mb-6">
@@ -56,9 +57,11 @@ export default function AgentProgress({ steps, topic }) {
           ))}
         </div>
         <div>
-          <h3 className="font-semibold text-gray-200">Agents at Work</h3>
+          <h3 className="font-semibold text-gray-200">
+            {t('progress.title', uiLang)}
+          </h3>
           <p className="text-sm text-gray-500 truncate max-w-xs">
-            Topic: {topic}
+            {tf('progress.topic', uiLang, { topic })}
           </p>
         </div>
       </div>
@@ -102,8 +105,7 @@ export default function AgentProgress({ steps, topic }) {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium capitalize">
-                  {step.step === 'planning' ? 'Planning' :
-                   step.step === 'writing' ? 'Writing' : 'Editing'}
+                  {t(`progress.${step.step}`, uiLang)}
                 </span>
                 {STATUS_DOTS[step.status]}
               </div>

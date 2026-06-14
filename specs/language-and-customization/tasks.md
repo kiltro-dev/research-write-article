@@ -7,7 +7,8 @@
 
 ## Fase 2: Backend
 4. Extender la solicitud de generación con:
-   - language
+   - contentLanguage
+   - interfaceLanguage
    - tone
    - length
    - perspective
@@ -17,18 +18,21 @@
 
 ## Fase 3: Frontend
 8. Añadir selectores simples al formulario de entrada:
-   - idioma
+   - idioma de la interfaz
+   - idioma del contenido generado
    - tono
    - longitud
    - enfoque
-9. Mostrar la configuración activa en la UI.
-10. Enviar la configuración al backend junto con el topic.
+9. Detectar el idioma del navegador como valor inicial.
+10. Mostrar la configuración activa en la UI.
+11. Enviar la configuración al backend junto con el topic.
 
 ## Fase 4: Validación
-11. Probar con al menos un idioma distinto al español.
-12. Verificar que el artículo generado está realmente en ese idioma.
-13. Probar distintos tonos y longitudes para confirmar que afectan el resultado.
-14. Verificar que la app sigue funcionando si el usuario no cambia nada.
+12. Probar con al menos un idioma distinto al español.
+13. Verificar que el artículo generado está realmente en ese idioma.
+14. Probar distintos tonos y longitudes para confirmar que afectan el resultado.
+15. Verificar que la app sigue funcionando si el usuario no cambia nada.
+16. Validar que el idioma detectado del navegador se usa como valor por defecto cuando no hay selección manual.
 
 ## Fase 5: Pulido
 15. Añadir mensajes de ayuda en la UI para explicar cada opción.

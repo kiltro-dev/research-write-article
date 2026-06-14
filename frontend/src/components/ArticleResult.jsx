@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import { t, tf, CONTENT_LANGUAGES, TONE_OPTIONS, LENGTH_OPTIONS, PERSPECTIVE_OPTIONS } from '../i18n'
 
-export default function ArticleResult({ article, topic, provider, onRegenerate, onNewTopic }) {
+export default function ArticleResult({ article, topic, provider, usedConfig, onRegenerate, onNewTopic, uiLang }) {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {
@@ -11,7 +13,6 @@ export default function ArticleResult({ article, topic, provider, onRegenerate, 
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // Fallback
       const ta = document.createElement('textarea')
       ta.value = article
       document.body.appendChild(ta)
@@ -23,27 +24,59 @@ export default function ArticleResult({ article, topic, provider, onRegenerate, 
     }
   }
 
+  // Build config badge labels
+  const langName = usedConfig
+    ? CONTENT_LANGUAGES.find((l) => l.code === usedConfig.contentLanguage)?.name
+    : null
+  const toneLabel = usedConfig
+    ? TONE_OPTIONS.find((o) => o.value === usedConfig.tone)?.[`label_${uiLang}`]
+    : null
+  const lengthLabel = usedConfig
+    ? LENGTH_OPTIONS.find((o) => o.value === usedConfig.length)?.[`label_${uiLang}`]
+    : null
+  const perspLabel = usedConfig
+    ? PERSPECTIVE_OPTIONS.find((o) => o.value === usedConfig.perspective)?.[`label_${uiLang}`]
+    : null
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      {/* Success banner */}
+      {/* Success banner with config badges */}
       <div className="glow-card border-green-500/30 p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <span className="text-2xl">🎉</span>
           <div>
-            <h3 className="font-semibold text-green-400">Article Generated!</h3>
+            <h3 className="font-semibold text-green-400">
+              {t('result.title', uiLang)}
+            </h3>
             <p className="text-sm text-gray-400">
-              Topic: <strong className="text-gray-200">{topic}</strong>
+              <strong className="text-gray-200">{topic}</strong>
               {provider && (
                 <>
-                  {' '}&middot; Powered by{' '}
-                  <span className="text-brand-400 capitalize">{provider}</span>
+                  {' '}&middot; {tf('result.poweredBy', uiLang, { provider })}
                 </>
               )}
             </p>
+            {/* Config badges */}
+            {usedConfig && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                  🌐 {langName || usedConfig.contentLanguage}
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                  ✍️ {toneLabel || usedConfig.tone}
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  📏 {lengthLabel || usedConfig.length}
+                </span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  🔍 {perspLabel || usedConfig.perspective}
+                </span>
+              </div>
+            )}
           </div>
         </div>
         <div className="flex gap-2">
@@ -51,19 +84,19 @@ export default function ArticleResult({ article, topic, provider, onRegenerate, 
             onClick={handleCopy}
             className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl text-sm font-medium transition-colors"
           >
-            {copied ? '✓ Copied!' : '📋 Copy'}
+            {copied ? t('result.copied', uiLang) : t('result.copy', uiLang)}
           </button>
           <button
             onClick={onRegenerate}
             className="px-4 py-2 bg-brand-600 hover:bg-brand-500 rounded-xl text-sm font-medium transition-colors"
           >
-            🔄 Regenerate
+            {t('result.regenerate', uiLang)}
           </button>
           <button
             onClick={onNewTopic}
             className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl text-sm font-medium transition-colors"
           >
-            ✨ New Topic
+            {t('result.newTopic', uiLang)}
           </button>
         </div>
       </div>
@@ -87,7 +120,7 @@ export default function ArticleResult({ article, topic, provider, onRegenerate, 
           prose-pre:bg-gray-800 prose-pre:border prose-pre:border-gray-700
           prose-blockquote:text-gray-400 prose-blockquote:border-brand-500
         ">
-          <ReactMarkdown>{article}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{article}</ReactMarkdown>
         </div>
       </motion.article>
     </motion.div>
