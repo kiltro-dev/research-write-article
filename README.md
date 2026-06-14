@@ -7,7 +7,9 @@ A portfolio-ready multi-agent application built with **crewAI**, **FastAPI**, an
 ![Stack](https://img.shields.io/badge/backend-FastAPI-009688?logo=fastapi)
 ![Stack](https://img.shields.io/badge/frontend-React-61DAFB?logo=react&logoColor=black)
 ![Stack](https://img.shields.io/badge/agents-crewAI-8A2BE2)
-![Stack](https://img.shields.io/badge/deploy-Render_+_Vercel-000000)
+![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?logo=githubactions&logoColor=white)
+![Backend](https://img.shields.io/badge/deploy-Render-46E3B7?logo=render)
+![Frontend](https://img.shields.io/badge/deploy-Vercel-000000?logo=vercel)
 
 ---
 
@@ -78,6 +80,37 @@ Open **http://localhost:5173**, type a topic, and watch the agents work.
 
 ---
 
+## ⚙️ CI/CD (GitHub Actions)
+
+Pushing to `main` triggers automatic deploys — **only the part that changed**:
+
+| Change in... | Deploys |
+|-------------|---------|
+| `backend/**` | → Render |
+| `frontend/**` | → Vercel |
+| Both | → Both (in parallel) |
+
+### Setup
+
+1. **Render deploy hook**:
+   - [dashboard.render.com](https://dashboard.render.com) → click your service name
+   - **Settings** tab → scroll to "Deploy Hook" section → copy the URL
+   - Looks like: `https://api.render.com/deploy/srv-...?key=...`
+2. **Vercel deploy hook**:
+   - [vercel.com](https://vercel.com) → your project → **Settings** tab
+   - Left sidebar: **Git** → "Deploy Hooks" → **Create Hook** → copy URL
+   - Looks like: `https://api.vercel.com/v1/integrations/deploy/prj_.../...`
+3. Add to **GitHub Secrets** (repo → Settings → Secrets and variables → Actions):
+   - `RENDER_DEPLOY_HOOK_URL` — your Render hook
+   - `VERCEL_DEPLOY_HOOK_URL` — your Vercel hook
+   - `VITE_API_URL` — `https://your-app.onrender.com`
+
+Workflows live in `.github/workflows/`:
+- `deploy-backend.yml` — validates Python imports, triggers Render
+- `deploy-frontend.yml` — builds Vite app, triggers Vercel
+
+---
+
 ## 🌐 Deploy to production (free)
 
 You have two options:
@@ -90,23 +123,27 @@ Two separate services, each doing what they're best at.
 
 1. Push your code to GitHub
 2. Go to [dashboard.render.com](https://dashboard.render.com) → **New +** → **Web Service**
-3. Connect your repo and configure:
+3. Click **"Build and deploy from a Git repository"** → connect GitHub → select your repo
+4. Fill the form:
 
 | Field | Value |
 |-------|-------|
-| Environment | `Python 3` |
-| Build Command | `pip install -r requirements.txt` |
-| Start Command | `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT` |
-| Plan | **Free** |
+| **Name** | `article-agent-api` (becomes `article-agent-api.onrender.com`) |
+| **Region** | `Ohio (US East)` or closest to you |
+| **Branch** | `main` |
+| **Runtime** | `Python 3` |
+| **Build Command** | `pip install -r requirements.txt` |
+| **Start Command** | `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT` |
+| **Instance Type** | **Free** |
 
-4. Under **Advanced** → **Environment Variables**, add:
+5. Scroll down to **Advanced** → **Add Environment Variable** and add:
 
 | Key | Value |
 |-----|-------|
 | `GROQ_API_KEY` | `gsk_your_key_here` |
+| `GEMINI_API_KEY` | *(if you have one)* |
 | `PROVIDER_PRIORITY` | `groq,gemini,openrouter,huggingface` |
-
-5. Click **Create Web Service** → your API is live at `https://your-app.onrender.com`
+6. Click **Create Web Service** → Render builds & deploys. Your API is live at `https://article-agent-api.onrender.com`. Verify: open `/docs` for the Swagger UI.
 
 #### Frontend → Vercel
 

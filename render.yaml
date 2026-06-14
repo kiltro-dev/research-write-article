@@ -1,0 +1,22 @@
+# Render Blueprint — infrastructure as code
+# https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: article-agent-api
+    env: python
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PROVIDER_PRIORITY
+        value: groq,gemini,openrouter,huggingface
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: HF_API_KEY
+        sync: false
