@@ -1,10 +1,9 @@
-crewai[litellm]==1.14.6
-crewai-tools==1.14.6
+crewai[litellm]==1.13
+crewai-tools==1.13
 fastapi==0.136.3
 uvicorn[standard]==0.49.0
 pydantic==2.12
 pydantic-settings==2.10.1
 python-dotenv==1.2.2
-openai==2.41.1
 google-genai==2.8.0
 sse-starlette==3.4.4
